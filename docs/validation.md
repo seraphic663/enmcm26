@@ -10,7 +10,7 @@
 | 完美信息A | 全年联合MILP达到最优，费用与逐时段证据一致 |
 | 十九张表 | 数值、模型、策略及电价方法语义匹配 |
 | 六张图 | 指定文件齐全，PNG完整解码及可视检查通过 |
-| 论文 | 开源字体配置下XeLaTeX三遍编译成功，共31页 |
+| 论文 | XeLaTeX三遍编译成功，共31页 |
 
 运行环境：Windows、Python 3.12.14、SciPy 1.16.3、NumPy 1.26.4、pandas 2.3.3，全部依赖由`requirements.txt`固定。P2 A采用1200秒时限。论文采用MiKTeX XeLaTeX、Fandol与TeX Gyre字体。
 
@@ -18,4 +18,4 @@
 
 反向校验覆盖费用篡改、紧急购电量错误、SOC偏移、工作簿与基准同时篡改、损坏图像、年度证据缺失、策略标签错配及重复语义键，均按预期拒绝。
 
-机器可读结果见[validation.json](validation.json)。单命令入口已核对Python版本与18项固定依赖，并完成命令预览。开源字体版与原版去除页码、规范化Unicode和空白后的正文提取文本一致。
+机器可读结果见[validation.json](validation.json)。单命令入口已核对Python版本与18项固定依赖，并完成命令预览。

@@ -1,12 +1,28 @@
-# enmcm26
+# 基于混合整数线性规划的动态购电与储能调度模型
 
-基于混合整数线性规划的微网动态购电与储能调度研究，包含论文、P1—P4模型、对照策略及结果复现程序。
+研究2026年全国大学生数学建模竞赛C题“微网与外部电网电力调控策略”，联合优化微网购电与储能调度。项目包含论文、P1—P4模型、对照策略及结果复现程序。
 
 [论文](paper/main.pdf) · [模型说明](docs/model-scope.md) · [数据与结果](docs/provenance.md) · [验证结果](docs/validation.md)
 
+在2025年2月1日至12月31日的334天统计期内：
+
+- 固定电价下，Dynamic相较固定70 kWh冗余策略，紧急购电量减少约79.7%，总费用减少约639.1万元。
+- 波动电价下，冻结储能的滚动调整策略（WD2+bfreeze）相较不调整方案，紧急购电量减少60.75%，总费用降至约1617.26万元。
+
+![微网购电与储能调度的整体建模框架](figure/图01_微网购电与储能调度的整体建模框架.png)
+
 ## 快速复现
 
-安装[uv](https://docs.astral.sh/uv/getting-started/installation/)。重绘中文图表需要系统中文字体，支持微软雅黑、黑体或Noto Sans CJK SC。在项目根目录用PowerShell 7执行：
+安装[Git](https://git-scm.com/downloads/)、[PowerShell 7](https://learn.microsoft.com/zh-cn/powershell/scripting/install/install-powershell-on-windows)和[uv](https://docs.astral.sh/uv/getting-started/installation/)。重绘中文图表需要系统中文字体，支持微软雅黑、黑体或Noto Sans CJK SC。
+
+在Windows的PowerShell 7中获取项目并进入根目录：
+
+```powershell
+git clone https://github.com/seraphic663/enmcm26.git
+cd enmcm26
+```
+
+运行完整复现：
 
 ```powershell
 uv run --isolated --no-project --python 3.12.14 --with-requirements requirements.txt `
@@ -18,14 +34,14 @@ uv自动准备Python 3.12.14和`requirements.txt`中的固定依赖，并缓存�
 
 | 生成内容 | 位置 |
 |---|---|
-| 五个结果工作簿与逐日、逐时段证据 | 运行目录的`result/` |
+| 五个结果工作簿与逐日、逐时段证据 | `result/` |
 | 十九张表、六张图 | `table/`、`figure/` |
 | 结果校验、表格校验 | `verification.json`、`table-verification.json` |
 | 运行日志、阶段耗时 | `run.log`、`steps.json` |
 
-回放覆盖2025年365天，正式统计区间为2025-02-01至2025-12-31，共334天。运行目录使用独立时间戳，便于保存和比较多次结果。
+以上位置均相对于本次运行目录`output/run-时间戳/`。回放覆盖2025年365天，正式统计区间为2025-02-01至2025-12-31，共334天。
 
-在同一命令末尾加`--dry-run`可预览执行步骤；加`--smoke-days 32`可做短程检查。短程模式跳过全年完美信息A及完整结果比对。
+在复现命令末尾加`--dry-run`可预览求解与导出阶段；加`--smoke-days 32`可检查前32天的求解流程，保留各阶段的局部结果。短程模式跳过全年完美信息A、五份工作簿的统一汇总、表图生成和最终校验。
 
 ## 模型
 
@@ -34,7 +50,9 @@ uv自动准备Python 3.12.14和`requirements.txt`中的固定依赖，并缓存�
 | P1 | 典型日购电与储能联合调度，核对A/B时间映射 |
 | P2 | 全年完美信息A、Yesterday、Yesterday+70、Dynamic |
 | P3 | 无调整基准与6/12/18点光伏预报驱动的滚动调整 |
-| P4 | Att1/Yest/WD2电价预测，以及A/B0/bstar/bfreeze调整策略 |
+| P4 | 固定电价（Att1）、前一日电价（Yest）及同星期历史日均值（WD2）预测，比较不同调整策略 |
+
+P4的调整策略包括不调整（A）、按前一日电价滚动调整（B0）、同步调整储能（bstar）和冻结储能滚动调整（bfreeze）；主策略为WD2+bfreeze。
 
 P1采用CBC求解并以HiGHS独立校验；其余MILP采用SciPy HiGHS。物理约束、时间索引和费用口径见[模型说明](docs/model-scope.md)。
 
