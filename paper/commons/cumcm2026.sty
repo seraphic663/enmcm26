@@ -1,0 +1,58 @@
+% SPDX-License-Identifier: LPPL-1.3c
+% Template adaptation; see ../../THIRD_PARTY_NOTICES.md.
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{commons/cumcm2026}[2026/08/23 v1.0 CUMCM 2026 paper style]
+
+\RequirePackage{geometry}
+\geometry{a4paper,left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm,headheight=15pt}
+
+\RequirePackage{amsmath,amssymb,mathtools}
+\RequirePackage{booktabs,array,tabularx,longtable,multirow}
+\RequirePackage{graphicx,float,caption,subcaption}
+\RequirePackage{enumitem}
+\RequirePackage{xcolor}
+\RequirePackage{siunitx}
+\RequirePackage{microtype}
+\RequirePackage{titlesec}
+\RequirePackage{fancyhdr}
+
+% tabularx: X-derived wrapping columns.
+\newcolumntype{Y}{>{\centering\arraybackslash}X}
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+
+
+\setlength{\parindent}{2em}
+\setlength{\parskip}{0pt}
+\linespread{1.35}
+\setlength{\abovedisplayskip}{8pt plus 2pt minus 2pt}
+\setlength{\belowdisplayskip}{8pt plus 2pt minus 2pt}
+\setlist{leftmargin=2em,labelsep=0.6em,itemsep=0.25em,topsep=0.4em,parsep=0pt}
+
+\titleformat{\section}{\centering\heiti\zihao{3}\bfseries}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\heiti\zihao{4}\bfseries}{\thesubsection}{0.8em}{}
+\titleformat{\subsubsection}{\heiti\zihao{-4}\bfseries}{\thesubsubsection}{0.8em}{}
+\titlespacing{\section}{0pt}{1.2em}{0.8em}
+\titlespacing{\subsection}{0pt}{1.0em}{0.5em}
+\titlespacing{\subsubsection}{0pt}{0.8em}{0.4em}
+
+\captionsetup{font=small,labelsep=quad,skip=6pt}
+\captionsetup[table]{position=top}
+\renewcommand{\figurename}{图}
+\renewcommand{\tablename}{表}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+\makeatletter
+\AtBeginDocument{\hypersetup{pdftitle={\@title},pdfauthor={},pdfsubject={微网动态购电与储能调度模型}}}
+\makeatother
+
+\sisetup{detect-all,group-minimum-digits=4}
+
+\endinput

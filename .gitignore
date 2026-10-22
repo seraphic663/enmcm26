@@ -1,0 +1,13 @@
+.venv/
+.venv-*/
+output/
+/paper/fonts/
+__pycache__/
+*.py[cod]
+*.aux
+*.log
+*.out
+*.xdv
+*.fls
+*.fdb_latexmk
+*.synctex.gz

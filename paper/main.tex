@@ -1,0 +1,51 @@
+% ============================================================
+% CUMCM 2026 最终论文主文档
+% main.tex 只负责组织论文结构，具体内容在 contents/ 中维护
+% ============================================================
+
+% 文档类 -------
+
+% 公开论文：不含承诺书与编号页
+\documentclass[withoutpreface,bwprint]{commons/enmcm26thesis}
+% -----
+
+% 导言区 -------
+\input{commons/preamble.tex}
+% -----
+
+% 论文基本信息 -------
+\input{contents/info.tex}
+% -----
+
+\begin{document}
+
+% 封面 / 论文标题
+\maketitle
+
+% 摘要与关键词
+\input{contents/abstract.tex}
+
+% 正文 -------
+% 正文按章节拆分接入，保持原有文字、公式和章节顺序不变。
+\input{contents/sections/01-problem-restatement.tex}
+\input{contents/sections/02-problem-analysis.tex}
+\input{contents/sections/03-assumptions-symbols.tex}
+\input{contents/sections/05-problem1.tex}
+\input{contents/sections/06-problem2.tex}
+\input{contents/sections/07-problem3.tex}
+\input{contents/sections/08-problem4.tex}
+\input{contents/sections/09-validation.tex}
+\input{contents/sections/10-evaluation.tex}
+% -----
+
+
+\newpage
+% 参考文献 -------
+\input{contents/references.tex}
+% -----
+
+% 附录暂不接入；待项目结构确认后补充。
+
+\end{document}
+
+% vim: set ft=tex fdm=marker fmr=\ -------,-----:

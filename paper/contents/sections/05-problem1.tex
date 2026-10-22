@@ -1,0 +1,315 @@
+
+
+
+\section{问题一的建模与求解}
+
+\subsection{数据分析}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{图02_典型日负荷光伏电价净负荷.png}
+    \caption{典型日负荷光伏电价净负荷}
+    \label{fig:02}
+\end{figure}
+
+以附件1中的呈现的一天作为典型日，其电价、小区负载与光伏发电预测功率的日内变化如图~\ref{fig:02}所示。
+
+受日照时间影响，光伏发电主要集中于约6:00-19:00，并在中午附近达到峰值。小区负载则在白天和傍晚维持较高水平，与低电价时段并不完全重合，为储能跨时段调节提供了空间。可通过在低电价或光伏出力较高时段充电，在高电价或供电不足时段放电，减少高价外部电网购电并降低购电成本。
+
+%***也许要考虑到：
+%*可能是光伏出力小于小区负载 没有储存电量   所以要购电
+%*也可能是光伏出力小于小区负载 有储存电量  但是后买你还是光伏出力小于小区负载  现在的电价比后来的便宜，现在先买电，后面再用储电更划算，
+
+
+%下面可以做各图
+%来源：
+%光伏发电
+%储能
+%购电
+
+%使用：
+%小区负载
+
+\subsection{数据处理与时间划分}
+
+设第$t$个时段的小区负载功率和光伏预测功率分别为$P_t^{L}$和$P_t^{PV}$，对应的小区负载电量和光伏预测发电量分别为
+$L_t$和$R_t$。根据功率与电量的转换关系，有
+\begin{equation}
+L_t=P_t^{L}\Delta t,\qquad
+R_t=P_t^{PV}\Delta t,
+\qquad t=1,2,\ldots,T.
+\label{eq:power_energy}
+\end{equation}
+
+
+为统一负载、光伏发电与购电调度的时间尺度，将一天划分为$T=144$个长度为10 min的调度时段，第$t$个时段及其时间长度定义为
+\begin{equation}
+t=1,2,\ldots,T,\qquad
+T=144,\qquad
+\Delta t=\frac{1}{6}\ {\rm h}.
+\label{eq:time}
+\end{equation}
+
+附件1共包含144组负载功率、光伏预测功率和外网电价数据。
+由于题目研究范围为0：00至24：00完整自然日，本文统一将储电量附件中的时间标记作为10 min时段的右端点，即“0:10”对应0：00至0：10，“0:00+1”对应 23{:}50至24{:}00，144组数据与全天144个调度时段一一对应。
+
+为保证结果可靠，本文进一步采用左端点口径核查后发现两种口径仅改变各组数据对应的时间标签，不改变数据排列及模型求解结果，因此后文统一采用右端点口径。
+
+
+
+
+\subsection{决策变量与目标函数}
+
+根据微网的电量流向，定义第$t$个时段的外网购电量为$x_t$，
+储能充电量为$u_t$，储能放电量为$v_t$，时段结束时的储电量为$E_t$，
+上述变量的单位均为kWh。考虑到光伏发电量可能超过当前负载需求及储能可吸收电量，
+定义$w_t$为未利用的光伏电量。为限制储能设备在同一时段内同时充电和放电，
+引入0-1变量$z_t$表示储能充放电状态，其中$z_t=1$表示允许充电，
+$z_t=0$表示允许放电。
+
+在满足小区用电需求及储能运行约束的条件下，使全天外网购电费用最低。
+设$c_t$为第$t$个时段的外网电价，单位为元/kWh，则目标函数为
+\begin{equation}
+\min C=\sum_{t=1}^{T}c_t x_t .
+\label{eq:objective_p1}
+\end{equation}
+
+其中，$C$表示全天外网购电总费用。该目标函数通过联合确定各时段的购电量与储能充放电量，利用分时电价、负载需求和光伏出力的时序差异进行电能的跨时段调节，从而降低全天外网购电成本。
+
+
+
+
+\subsection{约束条件}
+
+首先，根据微网各时段的电量流入与流出建立电量平衡约束。外网购电、
+光伏发电和储能放电共同构成可用电量，用于满足小区负载和储能充电需求，
+多余且无法利用的光伏电量记为$w_t$，则有
+\begin{equation}
+x_t+R_t+v_t=L_t+u_t+w_t,
+\qquad t=1,2,\ldots,T.
+\label{eq:energy_balance}
+\end{equation}
+其中，$x_t,u_t,v_t,w_t\geq0$，且未利用的光伏电量不得超过当期光伏发电量，即
+\begin{equation}
+0\leq w_t\leq R_t,
+\qquad t=1,2,\ldots,T.
+\label{eq:curtailment}
+\end{equation}
+
+其次，考虑储能设备在充放电过程中的能量损耗。附录给定充电效率和放电效率
+均为$90\%$，因此相邻时段的储电量满足
+\begin{equation}
+E_t=E_{t-1}+0.9u_t-\frac{v_t}{0.9},
+\qquad t=1,2,\ldots,T.
+\label{eq:storage_balance}
+\end{equation}
+式中，充入$u_t$ kWh电量后实际存入储能设备的电量为$0.9u_t$，
+而向微网输出$v_t$ kWh电量需要储能设备释放$v_t/0.9$ kWh。
+根据题目给定的储能设备运行要求，储电量需保持在
+$1200\sim10800$ kWh范围内，因此有
+\begin{equation}
+1200\leq E_t\leq10800,
+\qquad t=1,2,\ldots,T.
+\label{eq:storage_capacity}
+\end{equation}
+
+储能设备最大充、放电功率均为$5000$ kW。由于单个调度时段长度为
+$\Delta t=1/6$ h，因此每个时段的最大充、放电量为
+\begin{equation}
+Q^{\max}
+=P^{\max}\Delta t
+=5000\times\frac{1}{6}
+=\frac{2500}{3}
+\approx833.333\ {\rm kWh}.
+\label{eq:max_energy}
+\end{equation}
+
+为避免储能设备在同一时段同时充电和放电，利用0-1变量$z_t$建立
+充放电互斥约束：
+\begin{equation}
+0\leq u_t\leq Q^{\max}z_t,
+\qquad t=1,2,\ldots,T,
+\label{eq:charge_constraint}
+\end{equation}
+\begin{equation}
+0\leq v_t\leq Q^{\max}(1-z_t),
+\qquad t=1,2,\ldots,T,
+\label{eq:discharge_constraint}
+\end{equation}
+\begin{equation}
+z_t\in\{0,1\},
+\qquad t=1,2,\ldots,T.
+\label{eq:binary_constraint}
+\end{equation}
+当$z_t=1$时，该时段允许充电且$v_t=0$；当$z_t=0$时，该时段允许放电且
+$u_t=0$，从而实现充放电状态的互斥。
+
+最后，根据题目给定的初始储电量及日末储电量要求，设置首末状态约束：
+\begin{equation}
+E_0=6000,\qquad E_T=6000.
+\label{eq:boundary_soc}
+\end{equation}
+
+由式~\eqref{eq:energy_balance}--\eqref{eq:boundary_soc}构成模型的主要约束。
+结合前述线性目标函数，模型中的$x_t$、$u_t$、$v_t$、$E_t$和$w_t$为连续变量，$z_t$为0--1变量，由此问题一建立为混合整数线性规划（Mixed Integer Linear Programming，MILP）模型。%这样说合适吗 我再去复查一下往届优秀论文。还有，那个约束的合集是在那些的
+
+
+\subsection{模型汇总}
+
+
+综上，以全天外网购电费用最小为目标，结合电量平衡、储能运行、
+充放电功率及首末储电量等约束，建立问题一的混合整数线性规划模型：
+
+
+
+
+\begin{equation}
+\begin{aligned}
+\min_{x_t,u_t,v_t,E_t,w_t,z_t}\quad
+& C=\sum_{t=1}^{T}c_t x_t \\[2mm]
+\mathrm{s.t.}\quad
+& \left\{
+\begin{aligned}
+x_t+R_t+v_t
+    &=L_t+u_t+w_t,
+&& t=1,2,\ldots,T,\\
+E_t
+    &=E_{t-1}+0.9u_t-\frac{v_t}{0.9},
+&& t=1,2,\ldots,T,\\
+1200
+    &\leq E_t\leq10800,
+&& t=1,2,\ldots,T,\\
+0
+    &\leq w_t\leq R_t,
+&& t=1,2,\ldots,T,\\
+0
+    &\leq u_t\leq Q^{\max}z_t,
+&& t=1,2,\ldots,T,\\
+0
+    &\leq v_t\leq Q^{\max}(1-z_t),
+&& t=1,2,\ldots,T,\\
+x_t
+    &\geq0,
+&& t=1,2,\ldots,T,\\
+z_t
+    &\in\{0,1\},
+&& t=1,2,\ldots,T,\\
+E_0&=6000,\qquad E_T=6000.
+\end{aligned}
+\right.
+\end{aligned}
+\label{eq:p1_model}
+\end{equation}
+
+
+\subsection{模型求解与结果检验}
+
+本文采用Python建立上述混合整数线性规划模型，并利用PuLP调用CBC求解器求得各时段的外网购电量、储能充放电量及储电量变化情况。
+为进一步检验求解结果，去除充放电互斥的0-1变量后，将模型转化为线性规划问题，并采用SciPy/HiGHS进行独立求解。两种求解方式所得最优目标值一致，且线性规划结果中未出现同一时段同时充电和放电的情况，可见互斥约束的加入未改变本题的最优结果。
+
+模型求得全天最低购电费用$c$为 35126.949 元，外网购电总量$Q_{grid}$为 59482.699 kWh.
+进一步对最优方案进行约束检验。全天储电量最低为$1200$ kWh、最高为
+$10800$ kWh，未超出题目规定的储电量范围；单个10 min时段最大充电量为
+$833.333$ kWh，最大放电量为$715.653$ kWh，均满足最大充放电功率限制。
+同时，全天未出现同时充放电及弃光现象，日末储电量恢复至$6000$ kWh，
+满足电量平衡、储能运行及首末状态等约束。
+
+
+\subsection{计划购电与储能调度结果}
+
+为分析各时段计划购电与储能充放电的变化，绘制日前购电与储能联合调度结果，如图~\ref{fig:03}所示。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{图03_日前购电与储能联合调度结果}
+    \caption{日前购电与储能联合调度结果}
+    \label{fig:03}
+\end{figure}
+
+图~\ref{fig:03}(a)中，低电价时段计划购电量较高，部分购入电量用于储能充电；随着电价升高，外网购电量随之下降，部分时段降至零。日间光伏发电量增加后，外网购电需求进一步减少；傍晚高电价阶段则主要通过储能放电补充负载需求。
+
+图~\ref{fig:03}(b)和(c)进一步展示了储能充放电与储电量的变化。凌晨低电价阶段储能集中充电，早间转为放电；午间随着光伏发电量增加，储电量再次上升并达到$10800$ kWh运行上限；傍晚持续放电后降至$1200$ kWh下限，晚间电价回落后重新充电，并于24:00恢复至$6000$ kWh。储能由此将低电价时段购入及光伏发电量较高时段的电量转移至高电价或供电不足时段。
+
+根据上述调度方案，将题目指定时段的计划购电量以及全天购电量、购电费用汇总于表~\ref{tab:p1_purchase}，储能设备在指定时间段的充放电量及首末储电量汇总于表~\ref{tab:p1_storage}。
+
+
+
+\subsection{购电与储能调度方案}
+
+根据模型求解结果，题目指定时段的计划购电量以及全天购电量、购电费用如表~\ref{tab:p1_purchase}所示。
+
+\begin{table}[H]
+\centering
+\caption{微网在指定时间段的购电量及全天购电量和购电费用}
+\label{tab:p1_purchase}
+\begin{tabular}{cccccc}
+\hline
+时间段 & 购电量/kWh & 时间段 & 购电量/kWh & 时间段 & 购电量/kWh \\
+\hline
+10:00--10:10 & 0.000
+& 12:00--12:10 & 480.412
+& 14:00--14:10 & 0.000 \\
+
+16:00--16:10 & 445.432
+& 18:00--18:10 & 531.894
+& 20:00--20:10 & 0.000 \\
+\hline
+\multicolumn{2}{c}{全天购电量/kWh}
+& 59482.699
+& \multicolumn{2}{c}{全天购电费用/元}
+& 35126.949 \\
+\hline
+\end{tabular}
+\end{table}
+
+进一步按照题目给定的4 h时间区间汇总储能充放电量，并给出0:00和24:00的储电量，结果如表~\ref{tab:p1_storage}所示。
+
+\begin{table}[H]
+\centering
+\caption{储能设备在指定时间段的充放电量及首末储电量}
+\label{tab:p1_storage}
+\begin{tabular}{cccccc}
+\hline
+时间段 & 充电量/kWh & 放电量/kWh
+& 时间段 & 充电量/kWh & 放电量/kWh \\
+\hline
+0:00--4:00   & 4500.000 & 0.000
+& 4:00--8:00   & 833.333  & 6365.841 \\
+
+8:00--12:00  & 4787.964 & 1702.997
+& 12:00--16:00 & 5286.035 & 91.101 \\
+
+16:00--20:00 & 0.000    & 5780.132
+& 20:00--24:00 & 5333.333 & 2859.868 \\
+\hline
+0:00储电量/kWh & 6000.000 & {}
+& 24:00储电量/kWh & 6000.000 & {} \\
+\hline
+\end{tabular}
+\end{table}
+
+由表~\ref{tab:p1_purchase}和表~\ref{tab:p1_storage}可得，全天外部电网购电量为
+$59,482.699$ kWh，最低购电费用为$35,126.949$元；0:00与24:00储电量均为
+$6000.000$ kWh，满足题目规定的首末储电量要求，且全天未发生弃光。
+题目指定其余各时段的完整购电与储能调度结果见附件。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
