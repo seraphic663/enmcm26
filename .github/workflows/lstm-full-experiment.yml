@@ -1,4 +1,4 @@
-name: Temporary LSTM full experiment
+name: Temporary LSTM history grid
 
 on:
   push:
@@ -8,6 +8,10 @@ on:
 
 jobs:
   run:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5]
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
@@ -21,17 +25,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install --index-url https://download.pytorch.org/whl/cpu torch
-      - name: Run full history-grid experiment
+      - name: Run history-grid shard
         run: |
           set -o pipefail
-          python experiments/lstm_history_grid.py 2>&1 | tee lstm-history-grid.log
-      - name: Upload results
+          python experiments/lstm_history_grid.py --shards 6 --shard-index ${{ matrix.shard }} 2>&1 | tee lstm-history-grid-shard${{ matrix.shard }}.log
+      - name: Upload shard results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lstm-history-grid-results
+          name: lstm-history-grid-shard-${{ matrix.shard }}
           path: |
-            lstm-history-grid.log
-            history-grid-results.json
-            history-grid-aggregate.csv
+            lstm-history-grid-shard${{ matrix.shard }}.log
+            history-grid-results-shard${{ matrix.shard }}-of-6.json
+            history-grid-aggregate-shard${{ matrix.shard }}-of-6.csv
           if-no-files-found: warn
