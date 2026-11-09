@@ -144,7 +144,8 @@ def batchify(ex,idx):
 
 def fit_month(spec,resid,base_net,net,dates,start,seed):
     fit_end=start-7
-    train_days=np.arange(1,fit_end,dtype=int)
+    first_train_day = 7 if spec["weekly"] is not None else 1
+    train_days=np.arange(first_train_day,fit_end,dtype=int)
     val_days=np.arange(fit_end,start,dtype=int)
     rmean=resid[:fit_end].mean(0); rstd=np.maximum(resid[:fit_end].std(0),1e-3)
     nmean=net[:fit_end].mean(0); nstd=np.maximum(net[:fit_end].std(0),1e-3)
