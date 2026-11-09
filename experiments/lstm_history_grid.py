@@ -19,7 +19,7 @@ When less than L/K history exists, use all history causally available at that ti
 """
 
 from __future__ import annotations
-import csv, json, math, sys, types
+import argparse, csv, json, math, sys, types
 from dataclasses import dataclass
 from pathlib import Path
 import numpy as np
@@ -229,6 +229,12 @@ def simulate(pred,net,prices,initial_soc):
     }
 
 def main():
+    parser=argparse.ArgumentParser()
+    parser.add_argument("--shard-index",type=int,default=0)
+    parser.add_argument("--shards",type=int,default=1)
+    args=parser.parse_args()
+    if args.shards < 1 or not (0 <= args.shard_index < args.shards):
+        raise ValueError("invalid shard configuration")
     torch.set_num_threads(2)
     paths=common.get_paths(); data=common.read_inputs(paths); cold_load,cold_pv=physical.read_cold_start(paths)
     y=run_config(data,cold_load,cold_pv,YESTERDAY_BASELINE_CONFIG,20.0)
@@ -263,12 +269,14 @@ def main():
     }
     print("BASELINE_JSON="+json.dumps(baseline),flush=True)
 
-    specs=arch_specs()
-    print("ARCH_COUNT="+str(len(specs)),flush=True)
+    all_specs=arch_specs()
+    specs=[s for i,s in enumerate(all_specs) if i % args.shards == args.shard_index]
+    print("ARCH_COUNT_TOTAL="+str(len(all_specs)),flush=True)
+    print("SHARD_JSON="+json.dumps({"index":args.shard_index,"shards":args.shards,"arch_names":[s["name"] for s in specs]}),flush=True)
     results=[]
     for ai,spec in enumerate(specs,1):
         for seed in SEEDS:
-            print(f"START arch={ai}/{len(specs)} {spec['name']} seed={seed}",flush=True)
+            print(f"START shard={args.shard_index}/{args.shards} arch={ai}/{len(specs)} {spec['name']} seed={seed}",flush=True)
             pred,meta=build_pred(spec,seed,resid,base,net,data.dates)
             met=simulate(pred,net,data.prices,initial_soc)
             row={"arch":spec["name"],"seed":seed,**spec,**met}
@@ -290,17 +298,19 @@ def main():
         aggs.append(a)
     aggs.sort(key=lambda x:x["total_cost_yuan_mean"])
     final={"protocol":{"seeds":SEEDS,"recent_caps":RECENT,"weekly_caps":WEEKLY,"tau":TAU,
-                       "hidden_per_branch":HIDDEN,"architectures":len(specs),"runs":len(results),
+                       "hidden_per_branch":HIDDEN,"architectures_total":len(all_specs),"architectures_this_shard":len(specs),"runs":len(results),
+                       "shard_index":args.shard_index,"shards":args.shards,
                        "history_shortfall":"use all causally available history",
                        "period":["2025-02-01","2025-12-31"],"days":334},
            "reproduction":gate,"dynamic":baseline,"results":results,"aggregate":aggs}
-    out=ROOT/"history-grid-results.json"
+    suffix=f"-shard{args.shard_index}-of-{args.shards}" if args.shards>1 else ""
+    out=ROOT/f"history-grid-results{suffix}.json"
     out.write_text(json.dumps(final,ensure_ascii=False,indent=2),encoding="utf-8")
-    csvp=ROOT/"history-grid-aggregate.csv"
+    csvp=ROOT/f"history-grid-aggregate{suffix}.csv"
     keys=list(aggs[0].keys())
     with csvp.open("w",newline="",encoding="utf-8") as f:
         w=csv.DictWriter(f,fieldnames=keys); w.writeheader(); w.writerows(aggs)
     print("TOP10_JSON="+json.dumps(aggs[:10]),flush=True)
-    print("FINAL_SUMMARY_JSON="+json.dumps({"best":aggs[0],"arch_count":len(specs),"run_count":len(results)}),flush=True)
+    print("FINAL_SUMMARY_JSON="+json.dumps({"best":aggs[0],"arch_count_this_shard":len(specs),"run_count":len(results),"shard_index":args.shard_index,"shards":args.shards}),flush=True)
 
 if __name__=="__main__": main()
