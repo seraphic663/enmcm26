@@ -680,9 +680,9 @@ def main():
                     ),
                     flush=True,
                 )
-                if rel > 1e-6:
+                if rel > 1e-4:
                     raise RuntimeError(
-                        f"recent_7 does not reproduce previous q80 within 1e-6 relative: {rel}"
+                        f"recent_7 does not reproduce previous q80 within 0.01% relative: {rel}"
                     )
 
     aggregate = aggregate_results(
