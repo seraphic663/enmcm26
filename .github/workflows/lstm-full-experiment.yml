@@ -21,14 +21,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install --index-url https://download.pytorch.org/whl/cpu torch
-      - name: Run strict-causal LSTM experiment
+      - name: Run full history-grid experiment
         run: |
           set -o pipefail
-          python experiments/lstm_full_experiment.py 2>&1 | tee lstm-experiment.log
-      - name: Upload log
+          python experiments/lstm_history_grid.py 2>&1 | tee lstm-history-grid.log
+      - name: Upload results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lstm-experiment-log
-          path: lstm-experiment.log
+          name: lstm-history-grid-results
+          path: |
+            lstm-history-grid.log
+            history-grid-results.json
+            history-grid-aggregate.csv
           if-no-files-found: warn
