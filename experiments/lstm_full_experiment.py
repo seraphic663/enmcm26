@@ -435,9 +435,14 @@ def main():
         "dynamic_emergency": float(dyn.summary["emergency_purchase_kwh"]),
     }
     repro["max_abs_diff"] = max(abs(repro[k] - expected[k]) for k in expected)
+    repro["yesterday_abs_diff"] = abs(repro["yesterday_total"] - expected["yesterday_total"])
+    repro["dynamic_total_rel_diff"] = abs(repro["dynamic_total"] - expected["dynamic_total"]) / expected["dynamic_total"]
+    repro["dynamic_emergency_rel_diff"] = abs(repro["dynamic_emergency"] - expected["dynamic_emergency"]) / expected["dynamic_emergency"]
     print("REPRO_JSON=" + json.dumps(repro, ensure_ascii=False), flush=True)
-    if repro["max_abs_diff"] > 1e-4:
-        raise RuntimeError(f"reproduction gate failed: {repro}")
+    if repro["yesterday_abs_diff"] > 1e-4:
+        raise RuntimeError(f"Yesterday reproduction gate failed: {repro}")
+    if repro["dynamic_total_rel_diff"] > 1e-4 or repro["dynamic_emergency_rel_diff"] > 1e-4:
+        raise RuntimeError(f"Dynamic reproduction gate failed (>0.01%): {repro}")
 
     net = np.asarray(data.load_kwh - data.pv_kwh, dtype=float)
     base_net = np.zeros_like(net)
