@@ -1,0 +1,36 @@
+name: Exhaustive LSTM history ablation
+
+on:
+  push:
+    branches:
+      - experiment/lstm-history-20261109
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12.14'
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install --index-url https://download.pytorch.org/whl/cpu torch
+      - name: Run exhaustive strict-causal history ablation
+        run: |
+          set -o pipefail
+          python experiments/lstm_history_ablation.py 2>&1 | tee history-ablation.log
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lstm-history-ablation-results
+          path: |
+            history-ablation.log
+            history_ablation_artifacts/
+          if-no-files-found: warn
