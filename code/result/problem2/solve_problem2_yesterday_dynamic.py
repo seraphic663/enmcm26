@@ -517,6 +517,8 @@ def choose_candidate(
 
     if config.candidate_mode == "yesterday_only":
         candidates = ("yesterday",)
+    elif config.candidate_mode == "weekday2_only":
+        candidates = ("weekday2",)
     elif config.candidate_mode == "selector":
         candidates = ("yesterday", "weekday2")
     else:
