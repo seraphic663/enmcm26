@@ -1,0 +1,46 @@
+name: Temporary Transformer architecture benchmark
+
+on:
+  push:
+    branches:
+      - experiment/transformer-20261110
+  workflow_dispatch:
+
+jobs:
+  run:
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - lstm_control
+          - t1
+          - t2
+          - t3
+          - t4
+          - t5
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12.14'
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install --index-url https://download.pytorch.org/whl/cpu torch
+      - name: Run benchmark
+        run: |
+          set -o pipefail
+          python experiments/transformer_benchmark.py --arch ${{ matrix.arch }} 2>&1 | tee transformer-${{ matrix.arch }}.log
+      - name: Upload result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: transformer-${{ matrix.arch }}
+          path: |
+            transformer-${{ matrix.arch }}.log
+            transformer-experiment-${{ matrix.arch }}.json
+          if-no-files-found: warn
