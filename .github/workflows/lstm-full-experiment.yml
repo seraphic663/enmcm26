@@ -1,9 +1,9 @@
-name: Temporary Dual-LSTM Dynamic-removal ablation
+name: Temporary LSTM explicit reserve experiment
 
 on:
   push:
     branches:
-      - experiment/lstm-resnet-20261110
+      - experiment/lstm-reserve-20261110
   workflow_dispatch:
 
 jobs:
@@ -12,13 +12,12 @@ jobs:
       fail-fast: false
       matrix:
         arch:
-          - dynamic_patch
           - dynamic_skip
+          - learned_gate
           - yesterday_skip
           - week1_skip
           - week2mean_skip
           - pure_dual
-          - learned_gate
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
@@ -32,16 +31,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install --index-url https://download.pytorch.org/whl/cpu torch
-      - name: Run architecture
+      - name: Run explicit reserve grid
         run: |
           set -o pipefail
-          python experiments/lstm_resnet_ablation.py --arch ${{ matrix.arch }} 2>&1 | tee resnet-${{ matrix.arch }}.log
-      - name: Upload architecture result
+          python experiments/lstm_reserve_experiment.py --arch ${{ matrix.arch }} 2>&1 | tee reserve-${{ matrix.arch }}.log
+      - name: Upload result
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: resnet-${{ matrix.arch }}
+          name: reserve-${{ matrix.arch }}
           path: |
-            resnet-${{ matrix.arch }}.log
-            resnet-ablation-${{ matrix.arch }}.json
+            reserve-${{ matrix.arch }}.log
+            reserve-experiment-${{ matrix.arch }}.json
           if-no-files-found: warn
