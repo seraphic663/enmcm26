@@ -1,9 +1,9 @@
-name: Temporary fixed-weekday2 Dynamic ablation
+name: Temporary fixed-weekday2 reserve grid
 
 on:
   push:
     branches:
-      - experiment/dynamic-weekday2-20261110
+      - experiment/fixed-weekday2-reserve-20261110
   workflow_dispatch:
 
 jobs:
@@ -21,16 +21,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install --index-url https://download.pytorch.org/whl/cpu torch
-      - name: Run fixed weekday2 ablation
+      - name: Run fixed-weekday2 reserve grid
         run: |
           set -o pipefail
-          python experiments/dynamic_ablation.py --variant fixed_weekday2 2>&1 | tee dynamic-ablation-fixed_weekday2.log
+          python experiments/lstm_reserve_fixed_weekday2.py 2>&1 | tee reserve-fixed-weekday2.log
       - name: Upload result
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: dynamic-ablation-fixed-weekday2
+          name: reserve-fixed-weekday2
           path: |
-            dynamic-ablation-fixed_weekday2.log
-            dynamic-ablation-fixed_weekday2.json
+            reserve-fixed-weekday2.log
+            reserve-experiment-fixed_weekday2_skip.json
           if-no-files-found: warn
