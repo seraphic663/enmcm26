@@ -1,9 +1,9 @@
-name: Temporary LSTM history grid
+name: Temporary Dual-LSTM Dynamic-removal ablation
 
 on:
   push:
     branches:
-      - experiment/lstm-20261109
+      - experiment/lstm-resnet-20261110
   workflow_dispatch:
 
 jobs:
@@ -11,7 +11,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2, 3, 4, 5]
+        arch:
+          - dynamic_patch
+          - dynamic_skip
+          - yesterday_skip
+          - week1_skip
+          - week2mean_skip
+          - pure_dual
+          - learned_gate
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
@@ -25,17 +32,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install --index-url https://download.pytorch.org/whl/cpu torch
-      - name: Run history-grid shard
+      - name: Run architecture
         run: |
           set -o pipefail
-          python experiments/lstm_history_grid.py --shards 6 --shard-index ${{ matrix.shard }} 2>&1 | tee lstm-history-grid-shard${{ matrix.shard }}.log
-      - name: Upload shard results
+          python experiments/lstm_resnet_ablation.py --arch ${{ matrix.arch }} 2>&1 | tee resnet-${{ matrix.arch }}.log
+      - name: Upload architecture result
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lstm-history-grid-shard-${{ matrix.shard }}
+          name: resnet-${{ matrix.arch }}
           path: |
-            lstm-history-grid-shard${{ matrix.shard }}.log
-            history-grid-results-shard${{ matrix.shard }}-of-6.json
-            history-grid-aggregate-shard${{ matrix.shard }}-of-6.csv
+            resnet-${{ matrix.arch }}.log
+            resnet-ablation-${{ matrix.arch }}.json
           if-no-files-found: warn
