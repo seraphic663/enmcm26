@@ -1,9 +1,9 @@
-name: Temporary Dual-LSTM Dynamic-removal ablation
+name: Temporary Dynamic ablation
 
 on:
   push:
     branches:
-      - experiment/lstm-resnet-20261110
+      - experiment/dynamic-ablation-20261110
   workflow_dispatch:
 
 jobs:
@@ -11,14 +11,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch:
-          - dynamic_patch
-          - dynamic_skip
-          - yesterday_skip
-          - week1_skip
-          - week2mean_skip
-          - pure_dual
-          - learned_gate
+        variant:
+          - full
+          - no_bias
+          - no_load_season
+          - no_pv_season
+          - no_selector_yesterday
+          - fixed70
+          - no_soc_state
+          - no_reserve
+          - stripped_forecast
+          - minimal_selector_fixed70
+          - minimal_yesterday_fixed70
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
@@ -32,16 +36,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install --index-url https://download.pytorch.org/whl/cpu torch
-      - name: Run architecture
+      - name: Run ablation variant
         run: |
           set -o pipefail
-          python experiments/lstm_resnet_ablation.py --arch ${{ matrix.arch }} 2>&1 | tee resnet-${{ matrix.arch }}.log
-      - name: Upload architecture result
+          python experiments/dynamic_ablation.py --variant ${{ matrix.variant }} 2>&1 | tee dynamic-ablation-${{ matrix.variant }}.log
+      - name: Upload result
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: resnet-${{ matrix.arch }}
+          name: dynamic-ablation-${{ matrix.variant }}
           path: |
-            resnet-${{ matrix.arch }}.log
-            resnet-ablation-${{ matrix.arch }}.json
+            dynamic-ablation-${{ matrix.variant }}.log
+            dynamic-ablation-${{ matrix.variant }}.json
           if-no-files-found: warn
