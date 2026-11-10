@@ -63,6 +63,7 @@ VARIANTS = (
     "no_load_season",
     "no_pv_season",
     "no_selector_yesterday",
+    "fixed_weekday2",
     "fixed70",
     "no_soc_state",
     "no_reserve",
@@ -83,6 +84,8 @@ def variant_config(name):
         return replace(c, name=name, seasonal_strength=0.0)
     if name == "no_selector_yesterday":
         return replace(c, name=name, candidate_mode="yesterday_only")
+    if name == "fixed_weekday2":
+        return replace(c, name=name, candidate_mode="weekday2_only")
     if name == "fixed70":
         return replace(
             c, name=name, delta_mode="fixed", default_delta=70.0,
