@@ -1,28 +1,13 @@
-name: Temporary Dynamic ablation
+name: Temporary fixed-weekday2 Dynamic ablation
 
 on:
   push:
     branches:
-      - experiment/dynamic-ablation-20261110
+      - experiment/dynamic-weekday2-20261110
   workflow_dispatch:
 
 jobs:
   run:
-    strategy:
-      fail-fast: false
-      matrix:
-        variant:
-          - full
-          - no_bias
-          - no_load_season
-          - no_pv_season
-          - no_selector_yesterday
-          - fixed70
-          - no_soc_state
-          - no_reserve
-          - stripped_forecast
-          - minimal_selector_fixed70
-          - minimal_yesterday_fixed70
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
@@ -36,16 +21,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install --index-url https://download.pytorch.org/whl/cpu torch
-      - name: Run ablation variant
+      - name: Run fixed weekday2 ablation
         run: |
           set -o pipefail
-          python experiments/dynamic_ablation.py --variant ${{ matrix.variant }} 2>&1 | tee dynamic-ablation-${{ matrix.variant }}.log
+          python experiments/dynamic_ablation.py --variant fixed_weekday2 2>&1 | tee dynamic-ablation-fixed_weekday2.log
       - name: Upload result
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: dynamic-ablation-${{ matrix.variant }}
+          name: dynamic-ablation-fixed-weekday2
           path: |
-            dynamic-ablation-${{ matrix.variant }}.log
-            dynamic-ablation-${{ matrix.variant }}.json
+            dynamic-ablation-fixed_weekday2.log
+            dynamic-ablation-fixed_weekday2.json
           if-no-files-found: warn
