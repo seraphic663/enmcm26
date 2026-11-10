@@ -43,6 +43,7 @@ spec = importlib.util.spec_from_file_location(
     "resnet_exp", ROOT / "experiments" / "lstm_resnet_ablation.py"
 )
 resnet = importlib.util.module_from_spec(spec)
+sys.modules["resnet_exp"] = resnet
 assert spec.loader is not None
 spec.loader.exec_module(resnet)
 
